@@ -15,35 +15,45 @@ api = Api(app)
 class User(Document):
     id_facebook = StringField()
     name = StringField()
-    link = StringField()
+    image_url = StringField()
+    username = StringField()
+    password = StringField()
 
 
 userParser = reqparse.RequestParser()
 userParser.add_argument("id_facebook", type=str, location="json")
 userParser.add_argument("name", type=str, location="json")
-userParser.add_argument("link", type=str, location="json")
+userParser.add_argument("image_url", type=str, location="json")
+userParser.add_argument("username", type=str, location="json")
+userParser.add_argument("password", type=str, location="json")
 
 
 class UserRes(Resource):
 
     def post(self):
         args = userParser.parse_args()
-        id_facebook = args["id_facebook"]
         name = args["name"]
-        link = args["link"]
+        image_url = args["image_url"]
+        username = args["username"]
+        password = args["password"]
 
         new_user = User()
-        new_user.id_facebook = id_facebook
         new_user.name = name
-        new_user.link = link
+        new_user.image_url = image_url
+        new_user.username = username
+        new_user.password = password
         new_user.save()
         return mlab.item2json(new_user)
 
     def get(self):
         args = request.args
-        print(args["id_facebook"])
-        users = User.objects(id_facebook__istartswith=args["id_facebook"])
-        return mlab.list2json(users)
+        users = User.objects((Q(username=args["username"]) & Q(password=args["password"])))
+        print(len(users))
+        if len(users) == 0:
+            return {"status ": "error", "message": "User doesn't exist"}, 401
+        else:
+            print(users.first())
+            return mlab.item2json(users)
 
 
 class Movie(Document):
