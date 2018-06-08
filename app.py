@@ -37,13 +37,17 @@ class UserRes(Resource):
         username = args["username"]
         password = args["password"]
 
-        new_user = User()
-        new_user.name = name
-        new_user.image_url = image_url
-        new_user.username = username
-        new_user.password = password
-        new_user.save()
-        return mlab.item2json(new_user)
+        users = User.objects((Q(username=args["username"])))
+        if len(users) > 0:
+            return {"status": "error", "message": "Username are have been already exist!"}, 400
+        else:
+            new_user = User()
+            new_user.name = name
+            new_user.image_url = image_url
+            new_user.username = username
+            new_user.password = password
+            new_user.save()
+            return mlab.item2json(new_user)
 
     def get(self):
         args = request.args
